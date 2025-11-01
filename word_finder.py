@@ -4,7 +4,7 @@ import json
 from tkinter import *
 from tkinter import ttk
 
-dict_path = "test.json"
+dict_path = "test1.json"
 #dict_path = "zh_hans_characters.json"
 with open(dict_path, "r", encoding="utf-8") as f:
     raw_str = f.read()
@@ -51,7 +51,7 @@ class UI(Frame):
                 widget.destroy()
 
         n = int(self.cmb1.get())
-        self.subwidgets = {"n_chars":n, "ic":[], "vowel":[], "tone":[], "strokes":[]} # type: dict[str, list[ttk.Combobox] | int]
+        self.subwidgets = {"n_chars":n, "ic":[], "vowel":[], "tone":[], "strokes":[], "cc":[], "fc":[]} # type: dict[str, list[ttk.Combobox] | int]
         for _ in range(n):
             lb1 = Label(self.master, text="声母")
             cmb1 = ttk.Combobox(self.master, values=["", "b", "p", "m", "f", "d", "t", "n", "l", "g", "k", "h", "j", "q", "x", "zh", "ch", "sh", "r", "z", "c", "s", "y", "w"])
@@ -61,44 +61,52 @@ class UI(Frame):
             cmb3 = ttk.Combobox(self.master, values=[""] + [str(_) for _ in range(1,5)])
             lb4 = Label(self.master, text="笔画数")
             cmb4 = ttk.Combobox(self.master, values=[""] + [str(_) for _ in range(1,30)])
-            lb5 = Label(self.master, text="四角号码")
-            lb6 = Label(self.master, text="中文电码")
+            lb5 = Label(self.master, text="中文电码")
+            ety1 = Entry(self.master)
+            lb6 = Label(self.master, text="四角号码")
+            ety2 = Entry(self.master)
             cmb1.bind("<<ComboboxSelected>>", lambda event, index=_: self.update_searcher(event, index))
             cmb2.bind("<<ComboboxSelected>>", lambda event, index=_: self.update_searcher(event, index))
             cmb3.bind("<<ComboboxSelected>>", lambda event, index=_: self.update_searcher(event, index))
             cmb4.bind("<<ComboboxSelected>>", lambda event, index=_: self.update_searcher(event, index))
-            lb1.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.3, relwidth=0.05, relheight=0.025)
-            cmb1.place(relx=(2*_+1)/(2*n), rely=0.3, relwidth=0.1, relheight=0.025)
-            lb2.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.4, relwidth=0.05, relheight=0.025)
-            cmb2.place(relx=(2*_+1)/(2*n), rely=0.4, relwidth=0.1, relheight=0.025)
-            lb3.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.5, relwidth=0.05, relheight=0.025)
-            cmb3.place(relx=(2*_+1)/(2*n), rely=0.5, relwidth=0.1, relheight=0.025)
-            lb4.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.6, relwidth=0.05, relheight=0.025)
-            cmb4.place(relx=(2*_+1)/(2*n), rely=0.6, relwidth=0.1, relheight=0.025)
+            ety1.bind("<Return>", lambda event, index=_: self.update_searcher(event, index))
+            ety2.bind("<Return>", lambda event, index=_: self.update_searcher(event, index))
+            lb1.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.2, relwidth=0.05, relheight=0.025)
+            cmb1.place(relx=(2*_+1)/(2*n), rely=0.2, relwidth=0.1, relheight=0.025)
+            lb2.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.3, relwidth=0.05, relheight=0.025)
+            cmb2.place(relx=(2*_+1)/(2*n), rely=0.3, relwidth=0.1, relheight=0.025)
+            lb3.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.4, relwidth=0.05, relheight=0.025)
+            cmb3.place(relx=(2*_+1)/(2*n), rely=0.4, relwidth=0.1, relheight=0.025)
+            lb4.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.5, relwidth=0.05, relheight=0.025)
+            cmb4.place(relx=(2*_+1)/(2*n), rely=0.5, relwidth=0.1, relheight=0.025)
+            lb5.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.6, relwidth=0.05, relheight=0.025)
+            ety1.place(relx=(2*_+1)/(2*n), rely=0.6, relwidth=0.1, relheight=0.02)
+            lb6.place(relx=(2*_+1)/(2*n) - 0.075, rely=0.7, relwidth=0.05, relheight=0.025)
+            ety2.place(relx=(2*_+1)/(2*n), rely=0.7, relwidth=0.1, relheight=0.02)
             self.subwidgets["ic"].append(cmb1)
             self.subwidgets["vowel"].append(cmb2)
             self.subwidgets["tone"].append(cmb3)
             self.subwidgets["strokes"].append(cmb4)
+            self.subwidgets["cc"].append(ety1)
+            self.subwidgets["fc"].append(ety2)
 
     def _get_stricts(self, index:int) -> dict:
         """
         返回第(index+1)组控件的所有非空值
         """
         res = {}
-        ic = self.subwidgets["ic"][index].get()
-        if ic:
-            res["ic"] = ic
-        vowel = self.subwidgets["vowel"][index].get()
-        if vowel:
-            res["vowel"] = vowel
-        tone = self.subwidgets["tone"][index].get()
-        if tone:
-            res["tone"] = tone
-        strokes = self.subwidgets["strokes"][index].get()
-        if strokes:
-            res["strokes"] = strokes
-        fc = NotImplemented
-        cc = NotImplemented
+
+        def _get_subwidget_val(strict_name, index):
+            val = self.subwidgets[strict_name][index].get()
+            if val:
+                res[strict_name] = val
+        
+        _get_subwidget_val("ic", index)
+        _get_subwidget_val("vowel", index)
+        _get_subwidget_val("tone", index)
+        _get_subwidget_val("strokes", index)
+        _get_subwidget_val("cc", index)
+        _get_subwidget_val("fc", index)
 
         return res
     
@@ -130,16 +138,7 @@ class UI(Frame):
 
         res = []
         for ch in zh_hans_dict:
-            b = True
-            for con in stricts.keys():
-                if con in ["strokes"]:
-                    if zh_hans_dict[ch][con] != stricts[con]:
-                        b = False
-                        break
-                elif con in ["ic", "vowel", "tone"]:
-                    if stricts[con] not in zh_hans_dict[ch][con]:
-                        b = False
-                        break
+            b = judge_char_with_stricts(ch, stricts)
             if b:
                 res.append(ch)
         if len(res) <= 10:
@@ -163,16 +162,8 @@ class UI(Frame):
             if len(word) != len(stricts_list):
                 continue
             for _ in range(len(word)):
-                b = True
-                for con in stricts_list[_].keys():
-                    if con in ["strokes"]:
-                        if zh_hans_dict.get(word[_],{"strokes":""})[con] != stricts_list[_][con]:
-                            b = False
-                            break
-                    elif con in ["ic", "vowel", "tone"]:
-                        if stricts_list[_][con] not in zh_hans_dict.get(word[_],{"ic":"","vowel":"","tone":""})[con]:
-                            b = False
-                            break
+                b = judge_char_with_stricts(word[_], stricts_list[_])
+
                 if not b:
                     break
             if b:
@@ -185,6 +176,63 @@ class UI(Frame):
             self.btans = Button(self.master, text=f"共有{len(res)}个结果")
             self.btans.bind("<Button-1>", lambda e: self._toplevel_display(e, res))
             self.btans.place(relx=0.4, rely=0.85, relwidth=0.2, relheight=0.05)
+
+def judge_char_with_stricts(ch:str, stricts:dict) -> bool:
+    """
+    判断汉字是否符合限制
+
+    Parameters
+    ---
+    - ch: 中文单字
+    - stricts: 限制条件字典，键值白名单，目前可接受键值包括:
+        - ic: 声母
+        - vowel: 韵母
+        - tone: 声调
+        - strokes: 笔画数
+        - cc: 中文电码, 如输入不为4位则视为无限制
+        - fc: 四角号码, 如输入不为4/5位则视为无限制 (长度为4位自动在末尾补通配符)
+
+    Returns
+    ---
+    - 单字是否符合限制条件的bool值
+    """
+    res = True
+    if zh_hans_dict.get(ch, "") == "":
+        return False
+    
+    for con in stricts.keys():
+        if con in ["strokes"]:
+            if zh_hans_dict[ch][con] != stricts[con]:
+                res = False
+                break
+        elif con in ["ic", "vowel", "tone"]:
+            if stricts[con] not in zh_hans_dict[ch][con]:
+                res = False
+                break
+        elif con in ["fc", "cc"]:
+            if con == "fc":
+                if len(stricts["fc"]) not in [4,5]:
+                    continue
+
+                stricts["fc"] = stricts["fc"] if len(stricts["fc"]) == 5 else stricts["fc"]+"."
+                fc_pattern = ""
+                for _ in stricts["fc"]:
+                    fc_pattern += _ if re.match(r"\d", _) else "."
+                if not re.match(fc_pattern, zh_hans_dict[ch].get(con, "")):
+                    res = False
+                    break
+            if con == "cc":
+                if len(stricts["cc"]) != 4:
+                    continue
+
+                cc_pattern = ""
+                for _ in stricts["cc"]:
+                    cc_pattern += _ if re.match(r"\d", _) else "."
+                if not re.match(cc_pattern, zh_hans_dict[ch].get(con, "")):
+                    res = False
+                    break
+    
+    return res
 
 if __name__ == "__main__":
     UI().mainloop()
